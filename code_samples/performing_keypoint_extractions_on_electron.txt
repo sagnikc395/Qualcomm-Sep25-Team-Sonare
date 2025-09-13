@@ -1,0 +1,132 @@
+1. Setup Electron Project
+mkdir electron-mediapipe
+cd electron-mediapipe
+npm init -y
+npm install electron @mediapipe/pose opencv.js
+
+
+Folder structure:
+
+electron-mediapipe/
+├─ main.js       # Electron main process
+├─ preload.js    # Optional, bridge for Node -> Renderer
+├─ index.html
+├─ renderer.js   # Renderer JS for UI + MediaPipe
+
+2. Electron Main Process (main.js)
+const { app, BrowserWindow } = require('electron');
+const path = require('path');
+
+function createWindow() {
+  const win = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true, // allows Node in renderer (simpler for dev)
+      contextIsolation: false,
+      preload: path.join(__dirname, 'preload.js') // optional
+    }
+  });
+
+  win.loadFile('index.html');
+}
+
+app.whenReady().then(createWindow);
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
+
+3. HTML File (index.html)
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Electron MediaPipe</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
+  <script src="https://docs.opencv.org/4.x/opencv.js"></script>
+</head>
+<body>
+  <video id="video" width="640" height="480" autoplay muted></video>
+  <canvas id="canvas" width="640" height="480"></canvas>
+  <script src="renderer.js"></script>
+</body>
+</html>
+
+4. Renderer JS (renderer.js)
+
+Here’s a complete setup for live pose keypoints:
+
+const videoElement = document.getElementById('video');
+const canvasElement = document.getElementById('canvas');
+const ctx = canvasElement.getContext('2d');
+
+// 1. Access webcam
+navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => { videoElement.srcObject = stream; videoElement.play(); })
+  .catch(err => console.error("Webcam error:", err));
+
+// 2. Initialize MediaPipe Pose
+const pose = new Pose.Pose({
+  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+});
+
+pose.setOptions({
+  modelComplexity: 1,
+  smoothLandmarks: true,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5
+});
+
+// 3. Callback to handle landmarks
+pose.onResults(results => {
+  ctx.save();
+  ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  ctx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+  if (results.poseLandmarks) {
+    for (const landmark of results.poseLandmarks) {
+      const x = landmark.x * canvasElement.width;
+      const y = landmark.y * canvasElement.height;
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = 'red';
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+});
+
+// 4. Feed video frames continuously
+async function sendVideoFrame() {
+  await pose.send({ image: videoElement });
+  requestAnimationFrame(sendVideoFrame);
+}
+
+videoElement.onloadeddata = () => { sendVideoFrame(); };
+
+5. Optional: Using OpenCV.js for preprocessing
+
+If you want to manipulate frames (grayscale, resize, etc.) before feeding into MediaPipe:
+
+let cap = new cv.VideoCapture(videoElement);
+let src = new cv.Mat(videoElement.height, videoElement.width, cv.CV_8UC4);
+
+function processFrame() {
+  cap.read(src);
+  cv.cvtColor(src, src, cv.COLOR_RGBA2RGB);
+
+  // Convert to ImageData for MediaPipe
+  const imgData = new ImageData(new Uint8ClampedArray(src.data), src.cols, src.rows);
+  pose.send({ image: imgData });
+
+  requestAnimationFrame(processFrame);
+}
+
+
+Note: This is heavier on CPU, but you can do filtering or resizing.
+
+6. Run Electron App
+npx electron .
+
+
+You should see a live webcam feed with pose keypoints drawn on a canvas.x`

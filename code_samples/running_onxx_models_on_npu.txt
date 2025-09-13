@@ -1,0 +1,97 @@
+Step 1: Prepare your model
+Export to ONNX
+
+ # Example: from PyTorch
+torch.onnx.export(model, sample_inputs, "mistral_fp16.onnx", 
+                  input_names=["input_ids"], 
+                  output_names=["logits"],
+                  dynamic_axes={"input_ids": {0: "batch", 1: "seq"}})
+
+
+Quantize if needed
+
+
+FP16: can often be directly exported from PyTorch with .half().
+
+
+INT8: use onnxruntime.quantization or Qualcomm’s QNN tools.
+
+
+from onnxruntime.quantization import quantize_dynamic, QuantType
+quantize_dynamic("mistral_fp16.onnx", "mistral_int8.onnx", 
+                 weight_type=QuantType.QInt8)
+
+
+
+🔹 Step 2: Install ONNX Runtime with QNN EP
+Qualcomm provides a special build:
+pip install onnxruntime-qnn
+
+Verify QNN is available:
+import onnxruntime as ort
+print(ort.get_available_providers())
+# should show: ['QNNExecutionProvider', 'CPUExecutionProvider']
+
+
+🔹 Step 3: Run inference on the NPU
+import onnxruntime as ort
+import numpy as np
+
+sess = ort.InferenceSession(
+    "mistral_int8.onnx",
+    providers=["QNNExecutionProvider", "CPUExecutionProvider"],
+    provider_options=[{"backend_path": "QnnHtp.dll", "backend_type": "htp"}]
+)
+
+# Example: generate logits for input
+input_ids = np.array([[1, 42, 1337]], dtype=np.int64)  # fake tokenized input
+logits = sess.run(None, {"input_ids": input_ids})
+
+
+🔹 Step 4: Build a server (FastAPI + streaming)
+We can wrap this into a REST API. For streaming tokens, we just loop autoregressively and yield outputs as they come.
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+import uvicorn
+import numpy as np
+import onnxruntime as ort
+
+app = FastAPI()
+
+# Load model on NPU
+sess = ort.InferenceSession(
+    "mistral_int8.onnx",
+    providers=["QNNExecutionProvider", "CPUExecutionProvider"], # main execution provider followed by the fallback.
+    provider_options=[{"backend_type": "htp"}]
+)
+
+def generate_stream(prompt_ids):
+    input_ids = prompt_ids
+    for step in range(50):  # max tokens
+        logits = sess.run(None, {"input_ids": np.array([input_ids], dtype=np.int64)})
+        next_token = int(np.argmax(logits[0][:, -1, :]))
+        input_ids = np.append(input_ids, next_token)
+        yield f"data: {next_token}\n\n"
+
+@app.post("/generate/stream")
+def generate_streaming(prompt: list[int]):
+    return StreamingResponse(generate_stream(prompt), media_type="text/event-stream")
+
+@app.post("/generate")
+def generate_non_streaming(prompt: list[int]):
+    input_ids = np.array([prompt], dtype=np.int64)
+    logits = sess.run(None, {"input_ids": input_ids})
+    return {"logits": logits[0].tolist()}
+    
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+POST /generate → runs full inference once.
+
+
+POST /generate/stream → streams tokens back as Server-Sent Events (SSE).
+
+🔹 Step 5: Call it (client example)
+curl -X POST http://localhost:8000/generate/stream \
+     -H "Content-Type: application/json" \
+     -d '{"prompt":[1,42,1337]}'
