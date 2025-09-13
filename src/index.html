@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Camera Stream to FastAPI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    video {
+      border: 2px solid #333;
+      border-radius: 8px;
+      width: 480px;
+      height: 360px;
+    }
+    #status {
+      margin-top: 15px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>Camera Stream → FastAPI</h1>
+  <video id="video" autoplay playsinline></video>
+  <div id="status">Initializing...</div>
+
+  <script>
+    const video = document.getElementById("video");
+    const status = document.getElementById("status");
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        status.textContent = "Camera started. Streaming to server...";
+        startStreaming();
+      } catch (err) {
+        status.textContent = "Error accessing camera: " + err;
+      }
+    }
+
+    function startStreaming() {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = 480;
+      canvas.height = 360;
+
+      async function sendFrame() {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+
+          try {
+            await fetch("http://localhost:8000/get_video", {
+              method: "POST",
+              body: blob,
+              headers: { "Content-Type": "application/octet-stream" }
+            });
+          } catch (err) {
+            console.error("Error sending frame:", err);
+          }
+        }, "image/jpeg", 0.7); // JPEG frame
+
+        requestAnimationFrame(sendFrame); // keep sending frames
+      }
+
+      sendFrame();
+    }
+
+    startCamera();
+  </script>
+</body>
+</html>
+
