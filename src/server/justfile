@@ -1,0 +1,41 @@
+# Default recipe
+default:
+    @just --list
+
+# Install dependencies
+install:
+    pip install fastapi uvicorn opencv-python numpy pydantic
+
+# Run the server in development mode
+dev:
+    uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Run the server in production mode
+prod:
+    uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+
+# Run with custom port
+run PORT="8000":
+    uvicorn main:app --host 0.0.0.0 --port {{PORT}}
+
+# Check server health
+health:
+    curl http://localhost:8000/health
+
+# Test keypoints endpoint
+test-keypoints:
+    curl http://localhost:8000/keypoints
+
+# Get stats
+stats:
+    curl http://localhost:8000/stats
+
+# Clear queue
+clear:
+    curl http://localhost:8000/queue/clear
+
+# Show API docs
+docs:
+    @echo "API Documentation available at:"
+    @echo "http://localhost:8000/docs (Swagger UI)"
+    @echo "http://localhost:8000/redoc (ReDoc)"
