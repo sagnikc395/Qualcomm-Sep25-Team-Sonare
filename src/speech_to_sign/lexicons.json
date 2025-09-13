@@ -1,0 +1,21 @@
+{
+    "PHRASES": {
+      "good morning": { "label": "GOOD_MORNING", "asset": "clips/good_morning.mp4", "dur_ms": 1000 },
+      "thank you":    { "label": "THANK_YOU",    "asset": "clips/thank_you.mp4",    "dur_ms": 900  },
+      "see you":      { "label": "SEE_YOU",      "asset": "clips/see_you.mp4",      "dur_ms": 800  }
+    },
+    "WORDS": {
+      "hi":       { "label": "HI",       "asset": "clips/hi.mp4",       "dur_ms": 800 },
+      "hello":    { "label": "HELLO",    "asset": "clips/hello.mp4",    "dur_ms": 850 },
+      "good":     { "label": "GOOD",     "asset": "clips/good.mp4",     "dur_ms": 900 },
+      "morning":  { "label": "MORNING",  "asset": "clips/morning.mp4",  "dur_ms": 1000 },
+      "what":     { "label": "WHAT",     "asset": "clips/what.mp4",     "dur_ms": 700 },
+      "you":      { "label": "YOU",      "asset": "clips/you.mp4",      "dur_ms": 600 },
+      "today":    { "label": "TODAY",    "asset": "clips/today.mp4",    "dur_ms": 800 },
+      "do":       { "label": "DO",       "asset": "clips/do.mp4",       "dur_ms": 600 }
+    },
+    "FINGERSPELL": {
+      "unknown": { "label": "SPELL", "asset": "clips/spell.mp4", "dur_ms": 600 }
+    }
+  }
+  
