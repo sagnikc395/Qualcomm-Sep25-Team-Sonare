@@ -113,12 +113,17 @@ npm start
 
 **Option 2: Speech-to-Sign Pipeline Only**
 
-```bash
-cd src/speech_to_sign
-./run_all.sh
-```
+- [ ] **npm run package** - creates an installer which for the app.
+- [ ] **python inference_basic.py** - command to run the lemmatization and word-mapping and video-sticthing server, running completely on local.
+- [ ] **python inference_whisper.py** - command to run the whisper model on local.
 
 ---
+
+## To run the pipeline in the demo:
+
+- [ ] **npm run package** - creates an installer which for the app.
+- [ ] **python inference_basic.py** - command to run the lemmatization and word-mapping and video-sticthing server, running completely on local.
+- [ ] **python inference_whisper.py** - command to run the whisper model on local.
 
 ## 📁 Project Structure
 
@@ -262,11 +267,9 @@ npm run lint      # Lint code
 
 **Speech-to-Sign Pipeline:**
 
-```bash
-cd src/speech_to_sign
-./run_all.sh      # Run complete pipeline
-./stitch_queue.sh # Stitch video queue
-```
+- [ ] **npm run package** - creates an installer which for the app.
+- [ ] **python inference_basic.py** - command to run the lemmatization and word-mapping and video-sticthing server, running completely on local.
+- [ ] **python inference_whisper.py** - command to run the whisper model on local.
 
 ### Adding New Gestures
 
@@ -375,11 +378,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Qualcomm Hackathon September 2025 - Team Sonare**
 
-- **Armaan Sandhu**
-- **Archana Yadav**
-- **Abhishek Mishra**
-- **Sagnik Chatterjee**
-- **Deva Anand**
+- **Armaan Sandhu** (apsandhu@umass.edu)
+- **Archana Yadav** (archanayadav@umass.edu)
+- **Abhishek Mishra** (abhishekmish@umass.edu)
+- **Sagnik Chatterjee** (sagnikchatte@umass.edu)
+- **Deva Anand** (devaanand@umass.edu)
 
 ---
 
