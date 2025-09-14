@@ -382,7 +382,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Archana Yadav** (archanayadav@umass.edu)
 - **Abhishek Mishra** (abhishekmish@umass.edu)
 - **Sagnik Chatterjee** (sagnikchatte@umass.edu)
-- **Deva Anand** (devaanad@umass.edu)
+- **Deva Anand** (devaanand@umass.edu)
 
 ---
 
