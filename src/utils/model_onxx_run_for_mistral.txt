@@ -1,0 +1,14 @@
+import onnxruntime as ort
+import numpy as np
+
+# Load the ONNX model
+session = ort.InferenceSession(str(model_path / 'model.onnx'))
+
+# Prepare your input data (example: a dummy input)
+input_data = np.random.randn(1, 3, 224, 224).astype(np.float32)  # Adjust shape as per model requirements
+
+# Run inference
+outputs = session.run(None, {'input': input_data})
+
+# Process outputs
+print(outputs)
