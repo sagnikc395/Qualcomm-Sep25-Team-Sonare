@@ -1,14 +1,24 @@
+from .logic import SpeechToSignController
+from .ui_components import SpeechToSignUI
+
 from kivy.app import App
-from kivy.uix.widget import Widget
 
-class PongGame(Widget):
-    pass
-
-class PongApp(App):
+class SpeechToSignLanguageApp(App):
+    """Main Kivy application"""
+    
     def build(self):
-        return PongGame()
+        self.controller = SpeechToSignController()
+        self.ui = SpeechToSignUI(self.controller)
+        return self.ui
+    
+    def on_stop(self):
+        """Clean up resources when app stops"""
+        if hasattr(self, 'controller'):
+            self.controller.cleanup()
+
+def main():
+    """Entry point for the application"""
+    SpeechToSignLanguageApp().run()
 
 if __name__ == '__main__':
-    PongApp().run()
-
-    
+    main()

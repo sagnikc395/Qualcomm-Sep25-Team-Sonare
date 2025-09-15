@@ -1,15 +1,14 @@
-#using pyaudio to capture the audio
-
 import pyaudio
-import wave 
+import wave
 import requests
 import tempfile
 import os
-import json 
-from typing import Optional, Dict, Any 
+import json
+from typing import Optional, Dict, Any
 
 class AudioRecorder:
-    ### handles audio recording operations 
+    """Handles audio recording operations"""
+    
     def __init__(self):
         self.chunk = 1024
         self.format = pyaudio.paInt16
@@ -18,14 +17,25 @@ class AudioRecorder:
         self.frames = []
         self.stream = None
         self.audio = pyaudio.PyAudio()
-
+    
     def start_recording(self):
-        ### start recording the audio and return temporary file path
+        """Start recording audio"""
+        self.frames = []
+        self.stream = self.audio.open(
+            format=self.format,
+            channels=self.channels,
+            rate=self.rate,
+            input=True,
+            frames_per_buffer=self.chunk
+        )
+    
+    def stop_recording(self) -> str:
+        """Stop recording and return temporary file path"""
         if self.stream:
             self.stream.stop_stream()
             self.stream.close()
-
-        # save the audio data to temporary file
+        
+        # Save audio data to temporary file
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
         wf = wave.open(temp_file.name, 'wb')
         wf.setnchannels(self.channels)
@@ -36,28 +46,15 @@ class AudioRecorder:
         
         return temp_file.name
     
-
     def record_frame(self):
-        # record a single frame of audio
+        """Record a single frame of audio"""
         if self.stream:
             data = self.stream.read(self.chunk)
             self.frames.append(data)
-
+    
     def cleanup(self):
-        ### clean up audio resources
+        """Clean up audio resources"""
         self.audio.terminate()
-
-class FileManager:
-    # handle file operations
-    #     
-    @staticmethod
-    def cleanup_temp_file(file_path: str):
-        """Remove temporary file safely"""
-        try:
-            if os.path.exists(file_path):
-                os.unlink(file_path)
-        except Exception as e:
-            print(f"Warning: Could not remove temp file {file_path}: {e}")
 
 class NetworkClient:
     """Handles network communication with backend services"""
@@ -93,3 +90,17 @@ class NetworkClient:
             raise Exception(f'Inference failed: {response.status_code}')
         
         return response.json()
+
+class FileManager:
+    """Handles file operations"""
+    
+    @staticmethod
+    def cleanup_temp_file(file_path: str):
+        """Remove temporary file safely"""
+        try:
+            if os.path.exists(file_path):
+                os.unlink(file_path)
+        except Exception as e:
+            print(f"Warning: Could not remove temp file {file_path}: {e}")
+
+            

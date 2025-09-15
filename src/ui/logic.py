@@ -1,7 +1,11 @@
+
 from dataclasses import dataclass
 from typing import Optional, Callable
 import threading
 from kivy.clock import Clock
+
+from src.ui.audio_recorder import AudioRecorder, FileManager, NetworkClient
+
 
 @dataclass
 class RecordingState:
@@ -144,4 +148,3 @@ class SpeechToSignController:
         
         if self.on_processing_error:
             self.on_processing_error(error_message)
-

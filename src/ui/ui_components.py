@@ -1,5 +1,4 @@
 import kivy
-from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -11,6 +10,9 @@ from kivy.animation import Animation
 from kivy.graphics import Color, Ellipse
 from kivy.clock import Clock
 from kivy.metrics import dp
+
+# Relative import within the ui package
+from .logic import SpeechToSignController
 
 kivy.require('2.0.0')
 
