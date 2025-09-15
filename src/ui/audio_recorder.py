@@ -35,3 +35,61 @@ class AudioRecorder:
         wf.close()
         
         return temp_file.name
+    
+
+    def record_frame(self):
+        # record a single frame of audio
+        if self.stream:
+            data = self.stream.read(self.chunk)
+            self.frames.append(data)
+
+    def cleanup(self):
+        ### clean up audio resources
+        self.audio.terminate()
+
+class FileManager:
+    # handle file operations
+    #     
+    @staticmethod
+    def cleanup_temp_file(file_path: str):
+        """Remove temporary file safely"""
+        try:
+            if os.path.exists(file_path):
+                os.unlink(file_path)
+        except Exception as e:
+            print(f"Warning: Could not remove temp file {file_path}: {e}")
+
+class NetworkClient:
+    """Handles network communication with backend services"""
+    
+    def __init__(self, transcribe_url: str = "http://127.0.0.1:7777/transcribe", 
+                 inference_url: str = "http://127.0.0.1:8000/inference"):
+        self.transcribe_url = transcribe_url
+        self.inference_url = inference_url
+    
+    def transcribe_audio(self, audio_file_path: str) -> Dict[str, Any]:
+        """Send audio file for transcription"""
+        with open(audio_file_path, 'rb') as audio_file:
+            files = {'file': ('audio.wav', audio_file, 'audio/wav')}
+            response = requests.post(self.transcribe_url, files=files, timeout=30)
+        
+        if not response.ok:
+            raise Exception(f'Transcription failed: {response.status_code}')
+        
+        return response.json()
+    
+    def get_sign_language_video(self, text: str) -> Dict[str, Any]:
+        """Get sign language video for given text"""
+        inference_data = {'text': text}
+        
+        response = requests.post(
+            self.inference_url,
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps(inference_data),
+            timeout=30
+        )
+        
+        if not response.ok:
+            raise Exception(f'Inference failed: {response.status_code}')
+        
+        return response.json()
